@@ -1,12 +1,11 @@
 package com.tarunkumar.blog.repository;
 
-import java.util.Optional;
-
+import com.tarunkumar.blog.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.tarunkumar.blog.entities.User;
+import java.util.Optional;
 
 public interface UserRepo extends JpaRepository<User, Integer> {
-    
+    // Custom query method to find user by email
     Optional<User> findByEmail(String email);
 }

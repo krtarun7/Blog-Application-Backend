@@ -6,12 +6,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import com.tarunkumar.blog.exception.ResourceNotFoundException;
 import com.tarunkumar.blog.entities.User;
+import com.tarunkumar.blog.exception.ResourceNotFoundException;
 import com.tarunkumar.blog.payloads.UserDto;
 import com.tarunkumar.blog.repository.UserRepo;
 import com.tarunkumar.blog.services.UserService;
@@ -30,31 +32,27 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // CREATE
     @Override
     public UserDto createUser(UserDto userDto) {
-    	
-    	System.out.println(userDto.toString());
-    	System.out.println("entered in creaat user function");
-    	
+        logger.info("Creating user: {}", userDto.getEmail());
+
         Optional<User> existingUser = userRepo.findByEmail(userDto.getEmail());
         if (existingUser.isPresent()) {
-            throw new RuntimeException("Email is already registered."); // Replace with CustomException if defined
+            throw new RuntimeException("Email is already registered.");
         }
-        
-//        userDto.setId(null);
-
-        User user = this.dtoToUser(userDto);
+        User user = dtoToUser(userDto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        logger.info("Saving new user...");
+        User savedUser = userRepo.save(user);
 
-        User savedUser = this.userRepo.save(user);
-        logger.info("User saved with ID: {}", savedUser.getId());
-        return this.userToDto(savedUser);
+        logger.info("User created with ID: {}", savedUser.getId());
+        return userToDto(savedUser);
     }
 
+    // UPDATE
     @Override
     public UserDto updateUser(UserDto userDto, Integer userId) {
-        User user = this.userRepo.findById(userId)
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         user.setName(userDto.getName());
@@ -62,22 +60,24 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setAbout(userDto.getAbout());
 
-        User updatedUser = this.userRepo.save(user);
+        User updatedUser = userRepo.save(user);
         logger.info("User updated with ID: {}", updatedUser.getId());
-        return this.userToDto(updatedUser);
+        return userToDto(updatedUser);
     }
 
+    // GET ONE
     @Override
     public UserDto getUserById(Integer userId) {
-        User user = this.userRepo.findById(userId)
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         logger.info("Fetched user by ID: {}", userId);
-        return this.userToDtoWithoutPassword(user);
+        return userToDtoWithoutPassword(user);
     }
 
+    // GET ALL
     @Override
     public List<UserDto> getAllUsers() {
-        List<User> users = this.userRepo.findAll();
+        List<User> users = userRepo.findAll();
         List<UserDto> userDtos = users.stream()
                 .map(this::userToDtoWithoutPassword)
                 .collect(Collectors.toList());
@@ -85,14 +85,16 @@ public class UserServiceImpl implements UserService {
         return userDtos;
     }
 
+    // DELETE
     @Override
     public void deleteUser(Integer userId) {
-        User user = this.userRepo.findById(userId)
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        this.userRepo.delete(user);
+        userRepo.delete(user);
         logger.info("Deleted user with ID: {}", userId);
     }
 
+    // DTO to Entity
     private User dtoToUser(UserDto userDto) {
         User user = new User();
         user.setId(userDto.getId());
@@ -103,9 +105,10 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    // Entity to DTO (with password)
     private UserDto userToDto(User user) {
         UserDto userDto = new UserDto();
-//        userDto.setId(user.getId());
+        userDto.setId(user.getId());
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
         userDto.setPassword(user.getPassword());
@@ -113,9 +116,10 @@ public class UserServiceImpl implements UserService {
         return userDto;
     }
 
+    // Entity to DTO (without password)
     private UserDto userToDtoWithoutPassword(User user) {
-        UserDto userDto = userToDto(user);
-//        userDto.setPassword(null); // Hide password
-        return userDto;
+        UserDto dto = userToDto(user);
+        dto.setPassword(null); // Hide password
+        return dto;
     }
 }
