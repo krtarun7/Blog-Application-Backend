@@ -11,9 +11,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-   // @Column(name = "user_name", nullable = false, length = 100)
-   // @NotEmpty
-   // @Size(min = 4, message = "Username must be at least 4 characters")
+    @Column(name = "user_name", nullable = false, length = 100)
+    @NotEmpty
+   @Size(min = 4, message = "Username must be at least 4 characters")
     private String name;
 
     @Column(unique = true, nullable = false)
