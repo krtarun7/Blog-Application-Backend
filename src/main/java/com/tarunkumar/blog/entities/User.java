@@ -1,5 +1,8 @@
 package com.tarunkumar.blog.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -27,6 +30,9 @@ public class User {
 
     @Column(length = 500)
     private String about;
+    
+    @OneToMany(mappedBy="user",cascade=CascadeType.ALL)
+    private List<Post> posts=new ArrayList<>();
 
     // Default constructor
     public User() {}
